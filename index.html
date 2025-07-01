@@ -306,7 +306,7 @@
     <div id="sharePanel" class="mt-8" role="region" aria-label="Share your story">
       <button class="shareBtn" id="copyBtn" aria-label="Copy story to clipboard" title="Copy story to clipboard">📋 Copy</button>
       <button class="shareBtn" id="downloadBtn" aria-label="Download story as text file" title="Download story as text file">📥 Download</button>
-      <a href="#" target="_blank" id="tweetLink" class="shareBtn" aria-label="Tweet this story" title="Tweet this story">🐦 Tweet</a>
+      <a href="#" target="_blank" id="tweetLink" class="shareBtn" aria-label="Share your story on Instagram" title="Share your story on Instagram">📸 Instagram</a>
       <button id="restartBtn" class="shareBtn" aria-label="Restart the game" title="Restart the game">🔄 Play Again</button>
     </div>
   </section>
@@ -441,9 +441,18 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     };
-    // Tweet link
-    const tweetText = encodeURIComponent(`Check out our story made with Hoonster's Story Jam! ✍️📖\n\n${fullText}`);
-    tweetLink.href = `https://twitter.com/intent/tweet?text=${tweetText}`;
+    // Instagram link setup
+    const instaLink = `https://www.instagram.com/`;
+    tweetLink.href = instaLink;
+    tweetLink.target = "_blank";
+    tweetLink.rel = "noopener noreferrer";
+    tweetLink.title = "Open Instagram to share your story";
+    tweetLink.textContent = "📸 Instagram";
+    tweetLink.onclick = (e) => {
+      e.preventDefault();
+      alert("Instagram does not support direct story text sharing. You can copy your story and post it manually!");
+      window.open(instaLink, '_blank', 'noopener,noreferrer');
+    };
   }
 
   // Restart game
