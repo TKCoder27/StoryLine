@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hoonster's Collaborative Story</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Reset & base */
+    body {
+      background: #fff9db;
+      color: #4b453a;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem;
+      user-select: none;
+    }
+    /* Loading Screen */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: #372f23;
+      color: #fbe586;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-weight: 900;
+      font-size: 4rem;
+      z-index: 100;
+      user-select: none;
+      animation: fadeIn 1.2s ease forwards;
+    }
+    #loading-screen p {
+      font-size: 1.5rem;
+      margin-top: 0.5rem;
+      font-weight: 400;
+      letter-spacing: 0.15em;
+      font-family: 'Courier New', Courier, monospace;
+      animation: pulse 2s infinite;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+    @keyframes pulse {
+      0%, 100% {opacity: 1;}
+      50% {opacity: 0.4;}
+    }
+    /* Hide sections by default */
+    section {
+      display: none;
+      max-width: 600px;
+      width: 100%;
+    }
+    section.active {
+      display: block;
+    }
+    /* Header */
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      letter-spacing: 0.15em;
+      color: #5c503a;
+      user-select: none;
+      text-align: center;
+    }
+    /* Setup */
+    #setup label {
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 0.3rem;
+      display: block;
+      color: #6b5e3c;
+    }
+    select {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1.2rem;
+      border-radius: 6px;
+      border: 2px solid #f1d67b;
+      background: #fbe586;
+      color: #372f23;
+      cursor: pointer;
+      transition: border-color 0.3s ease;
+    }
+    select:hover, select:focus {
+      border-color: #d4b547;
+      outline: none;
+    }
+    button {
+      margin-top: 1.5rem;
+      background: #d4b547;
+      color: #372f23;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1.3rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: 0 5px 10px #b2993e88;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+      user-select: none;
+      width: 100%;
+    }
+    button:hover {
+      background: #b79930;
+      transform: scale(1.05);
+    }
+    button:active {
+      transform: scale(0.97);
+    }
+    /* Game */
+    #game p {
+      font-weight: 700;
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      user-select: none;
+      text-align: center;
+      color: #6b5e3c;
+    }
+    #previousTextBox {
+      background: #fff7aa;
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      box-shadow: 3px 3px 6px #d4c167, inset 1px 1px 0 #fffddb;
+      font-style: italic;
+      color: #4b453a;
+      max-height: 120px;
+      overflow-y: auto;
+      margin-bottom: 1.2rem;
+      user-select: text;
+      font-size: 1.1rem;
+      white-space: pre-wrap;
+    }
+    textarea {
+      width: 100%;
+      min-height: 70px;
+      padding: 0.8rem 1rem;
+      font-size: 1.2rem;
+      border-radius: 12px;
+      border: 2px solid #f1d67b;
+      resize: vertical;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #372f23;
+      box-shadow: inset 2px 2px 6px #fff7aa;
+      transition: border-color 0.3s ease;
+      user-select: text;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #b79930;
+      box-shadow: 0 0 6px #b79930aa;
+      background: #fffbea;
+    }
+    /* Story board */
+    #storyBoard {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+    .postIt {
+      background: #fff7aa;
+      border-radius: 16px;
+      padding: 1rem 1.3rem;
+      box-shadow:
+        4px 4px 6px #d4c167,
+        inset 2px 2px 5px #fffddb;
+      font-size: 1.15rem;
+      line-height: 1.4;
+      user-select: text;
+      white-space: pre-wrap;
+      position: relative;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      color: #514b2e;
+    }
+    .postIt::before {
+      content: '';
+      position: absolute;
+      top: 8px;
+      left: 12px;
+      width: 35px;
+      height: 35px;
+      background: #e6d55e;
+      border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+      box-shadow: 2px 2px 3px #d4c167;
+      transform: rotate(-8deg);
+      z-index: -1;
+    }
+    /* Final story container */
+    #finalStory h2 {
+      font-size: 2.8rem;
+      text-align: center;
+      color: #6b5e3c;
+      user-select: none;
+    }
+    #finalStory #sharePanel {
+      margin-top: 1.8rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .shareBtn {
+      background: #d4b547;
+      color: #372f23;
+      border: none;
+      padding: 0.6rem 1.4rem;
+      font-size: 1.1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: 0 4px 8px #b2993e88;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .shareBtn:hover {
+      background: #b79930;
+      transform: scale(1.05);
+    }
+    .shareBtn:active {
+      transform: scale(0.97);
+    }
+    /* Scrollbar style */
+    #previousTextBox::-webkit-scrollbar,
+    #storyBoard::-webkit-scrollbar {
+      width: 8px;
+    }
+    #previousTextBox::-webkit-scrollbar-thumb,
+    #storyBoard::-webkit-scrollbar-thumb {
+      background: #d4b547;
+      border-radius: 4px;
+    }
+    /* Responsive */
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 2.2rem;
+      }
+      #game p {
+        font-size: 1.4rem;
+      }
+      textarea {
+        font-size: 1rem;
+      }
+      #storyBoard {
+        max-height: 300px;
+      }
+      .postIt {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading -->
+  <div id="loading-screen" aria-live="polite" aria-atomic="true">
+    Hoonster's
+    <p>Loading...</p>
+  </div>
+
+  <!-- Setup -->
+  <section id="setup" class="active" aria-label="Setup game">
+    <h1>Hoonster's Story Jam</h1>
+    <label for="numPlayers">Choose number of players (2–10):</label>
+    <select id="numPlayers" aria-required="true" aria-describedby="playersHelp" >
+      <option value="2" selected>2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+    </select>
+    <button id="startGameBtn" aria-label="Start the game">Start Story</button>
+  </section>
+
+  <!-- Game -->
+  <section id="game" aria-live="polite" aria-atomic="true" aria-label="Story writing game">
+    <p id="turnInfo">Player 1's turn</p>
+    <div id="previousTextBox" aria-live="polite" aria-atomic="true" role="region" aria-label="Previous sentence">
+      <em>No previous sentence yet. Start the story!</em>
+    </div>
+    <textarea id="sentenceInput" placeholder="Write 1-2 sentences continuing the story..." maxlength="300" aria-required="true" aria-label="Write your story continuation"></textarea>
+    <button id="submitSentenceBtn" aria-label="Submit your sentence">Submit</button>
+    <div id="turnCounter" class="mt-4 text-sm text-gray-600 user-select-none" aria-live="polite"></div>
+  </section>
+
+  <!-- Final Story -->
+  <section id="finalStory" aria-live="polite" aria-atomic="true" aria-label="Final story display">
+    <h2>Final Story</h2>
+    <div id="storyBoard" role="list"></div>
+    <div id="sharePanel" class="mt-8" role="region" aria-label="Share your story">
+      <button class="shareBtn" id="copyBtn" aria-label="Copy story to clipboard" title="Copy story to clipboard">📋 Copy</button>
+      <button class="shareBtn" id="downloadBtn" aria-label="Download story as text file" title="Download story as text file">📥 Download</button>
+      <a href="#" target="_blank" id="tweetLink" class="shareBtn" aria-label="Tweet this story" title="Tweet this story">🐦 Tweet</a>
+      <button id="restartBtn" class="shareBtn" aria-label="Restart the game" title="Restart the game">🔄 Play Again</button>
+    </div>
+  </section>
+
+<script>
+  // Elements
+  const loadingScreen = document.getElementById('loading-screen');
+  const setup = document.getElementById('setup');
+  const game = document.getElementById('game');
+  const finalStory = document.getElementById('finalStory');
+
+  const startGameBtn = document.getElementById('startGameBtn');
+  const numPlayersSelect = document.getElementById('numPlayers');
+
+  const turnInfo = document.getElementById('turnInfo');
+  const previousTextBox = document.getElementById('previousTextBox');
+  const sentenceInput = document.getElementById('sentenceInput');
+  const submitSentenceBtn = document.getElementById('submitSentenceBtn');
+  const turnCounter = document.getElementById('turnCounter');
+
+  const storyBoard = document.getElementById('storyBoard');
+  const copyBtn = document.getElementById('copyBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const tweetLink = document.getElementById('tweetLink');
+  const restartBtn = document.getElementById('restartBtn');
+
+  // Game vars
+  let players = 2;
+  let turn = 1; // 1-based turn count total (max 10)
+  let maxTurns = 10;
+  let currentPlayer = 1;
+  let sentences = [];
+
+  // Loading simulation then show setup
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      loadingScreen.style.display = 'none';
+      setup.classList.add('active');
+    }, 1400);
+  });
+
+  // Start game
+  startGameBtn.onclick = () => {
+    players = Number(numPlayersSelect.value);
+    if(players < 2 || players > 10){
+      alert('Select between 2 and 10 players.');
+      return;
+    }
+    // Reset
+    turn = 1;
+    currentPlayer = 1;
+    sentences = [];
+
+    setup.classList.remove('active');
+    finalStory.classList.remove('active');
+    game.classList.add('active');
+
+    previousTextBox.innerHTML = '<em>No previous sentence yet. Start the story!</em>';
+    turnInfo.textContent = `Player ${currentPlayer}'s turn`;
+    turnCounter.textContent = `Turn ${turn} of ${maxTurns}`;
+    sentenceInput.value = '';
+    sentenceInput.focus();
+  };
+
+  // Submit sentence
+  submitSentenceBtn.onclick = () => {
+    let text = sentenceInput.value.trim();
+    if(!text){
+      alert('Please write your continuation!');
+      sentenceInput.focus();
+      return;
+    }
+    // Save current sentence
+    sentences.push(text);
+
+    // Update turn & player
+    turn++;
+    currentPlayer = ((currentPlayer) % players) + 1;
+
+    // Update previousTextBox with last sentence only
+    previousTextBox.textContent = sentences[sentences.length - 1];
+
+    // Clear input
+    sentenceInput.value = '';
+
+    if(turn > maxTurns){
+      // Show final story
+      showFinalStory();
+      return;
+    }
+
+    // Update UI for next turn
+    turnInfo.textContent = `Player ${currentPlayer}'s turn`;
+    turnCounter.textContent = `Turn ${turn} of ${maxTurns}`;
+    sentenceInput.focus();
+  };
+
+  // Show final story screen
+  function showFinalStory(){
+    game.classList.remove('active');
+    finalStory.classList.add('active');
+
+    // Clear previous
+    storyBoard.innerHTML = '';
+
+    // Create a post-it note for each sentence
+    sentences.forEach((sent, i) => {
+      const note = document.createElement('div');
+      note.className = 'postIt';
+      note.setAttribute('role', 'listitem');
+      note.textContent = `Turn ${i+1}: ${sent}`;
+      storyBoard.appendChild(note);
+    });
+
+    // Prepare social share links
+    const fullText = sentences.join('\n\n');
+    // Copy button
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(fullText)
+        .then(() => alert('Story copied to clipboard!'))
+        .catch(() => alert('Failed to copy story.'));
+    };
+    // Download button
+    downloadBtn.onclick = () => {
+      const blob = new Blob([fullText], {type: 'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'hoonsters_story.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+    // Tweet link
+    const tweetText = encodeURIComponent(`Check out our story made with Hoonster's Story Jam! ✍️📖\n\n${fullText}`);
+    tweetLink.href = `https://twitter.com/intent/tweet?text=${tweetText}`;
+  }
+
+  // Restart game
+  restartBtn.onclick = () => {
+    finalStory.classList.remove('active');
+    setup.classList.add('active');
+  };
+</script>
+</body>
+</html>
